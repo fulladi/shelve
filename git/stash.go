@@ -51,11 +51,11 @@ func ApplyStash(id int) (string, error) {
 	cmd := exec.Command("git", "stash", "apply", fmt.Sprintf("stash@{%d}", id))
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	l := out.String()
 
 	if err := cmd.Run(); err != nil {
-		return l, err
+		return "", err
 	}
+	l := out.String()
 
 	return l, nil
 }
@@ -64,11 +64,11 @@ func DropStash(id int) (string, error) {
 	cmd := exec.Command("git", "stash", "drop", fmt.Sprintf("stash@{%d}", id))
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	l := out.String()
 
 	if err := cmd.Run(); err != nil {
-		return l, err
+		return "", err
 	}
+	l := out.String()
 
 	return l, nil
 }
@@ -86,4 +86,29 @@ func ClearWorkspace() error {
 	}
 
 	return nil
+}
+
+func ShowStash(id int) (string, error) {
+	cmd := exec.Command("git", "branch", "--show-current")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	b := out.String()
+
+	if b == "" {
+		return "", fmt.Errorf("cannot determine current git branch")
+	}
+	cmd = exec.Command("git", "diff", fmt.Sprintf("stash@{%d}", id), strings.TrimSpace(b))
+	out.Reset()
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	l := out.String()
+
+	return l, nil
 }
